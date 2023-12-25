@@ -1,10 +1,14 @@
 {
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2019"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
+    ],
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "module": "ESNext",
-    "target": "ES2019",
+    "target": "ES2022",
     "strict": true,
     "skipLibCheck": true,
     "declaration": true,
@@ -12,6 +16,11 @@
     "jsx": "react-jsx",
     "outDir": "./build"
   },
-  "exclude": ["node_modules"],
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
 }

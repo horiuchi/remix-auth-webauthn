@@ -25,16 +25,19 @@ interface WebAuthnAuthenticator {
 }
 
 function uint8ArrayToBase64Url(uint8Array: Uint8Array) {
-  const base64String = btoa(String.fromCharCode(...uint8Array));
-  return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  const base64String = btoa(String.fromCodePoint(...uint8Array));
+  return base64String
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
 }
 
 function base64UrlToUint8Array(string: string) {
-  const base64 = string.replace(/-/g, "+").replace(/_/g, "/");
+  const base64 = string.replaceAll("-", "+").replaceAll("_", "/");
   const binaryString = atob(base64);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+    bytes[i] = binaryString.codePointAt(i) ?? 0;
   }
   return bytes;
 }
@@ -103,7 +106,7 @@ export interface WebAuthnOptions<User> {
    * @returns Authenticator
    */
   getUserAuthenticators: (
-    user: User | null
+    user: User | null,
   ) => Promise<WebAuthnAuthenticator[]> | WebAuthnAuthenticator[];
   /**
    * Transform the user object into the shape expected by the strategy.
@@ -112,7 +115,7 @@ export interface WebAuthnOptions<User> {
    * @returns UserDetails
    */
   getUserDetails: (
-    user: User | null
+    user: User | null,
   ) => Promise<UserDetails | null> | UserDetails | null;
 
   /**
@@ -127,7 +130,7 @@ export interface WebAuthnOptions<User> {
    * @returns Authenticator
    */
   getAuthenticatorById: (
-    id: string
+    id: string,
   ) => Promise<Authenticator | null> | Authenticator | null;
 }
 
@@ -154,19 +157,19 @@ export class WebAuthnStrategy<User> extends Strategy<
     | string[]
     | ((request: Request) => Promise<string | string[]> | string | string[]);
   getUserAuthenticators: (
-    user: User | null
+    user: User | null,
   ) => Promise<WebAuthnAuthenticator[]> | WebAuthnAuthenticator[];
   getUserDetails: (
-    user: User | null
+    user: User | null,
   ) => Promise<UserDetails | null> | UserDetails | null;
   getUserByUsername: (username: string) => Promise<User | null> | User | null;
   getAuthenticatorById: (
-    id: string
+    id: string,
   ) => Promise<Authenticator | null> | Authenticator | null;
 
   constructor(
     options: WebAuthnOptions<User>,
-    verify: StrategyVerifyCallback<User, WebAuthnVerifyParams>
+    verify: StrategyVerifyCallback<User, WebAuthnVerifyParams>,
   ) {
     super(verify);
     this.rpName = options.rpName;
@@ -198,10 +201,10 @@ export class WebAuthnStrategy<User> extends Strategy<
   async generateOptions(
     request: Request,
     sessionStorage: SessionStorage<SessionData, SessionData>,
-    user: User | null
+    user: User | null,
   ) {
     let session = await sessionStorage.getSession(
-      request.headers.get("Cookie")
+      request.headers.get("Cookie"),
     );
 
     let authenticators: WebAuthnAuthenticator[] = [];
@@ -233,7 +236,7 @@ export class WebAuthnStrategy<User> extends Strategy<
         ? { displayName: userDetails.username, ...userDetails }
         : null,
       challenge: uint8ArrayToBase64Url(
-        crypto.default.getRandomValues(new Uint8Array(32))
+        crypto.default.getRandomValues(new Uint8Array(32)),
       ),
       authenticators: authenticators.map(({ credentialID, transports }) => ({
         id: credentialID,
@@ -256,10 +259,10 @@ export class WebAuthnStrategy<User> extends Strategy<
   async authenticate(
     request: Request,
     sessionStorage: SessionStorage<SessionData, SessionData>,
-    options: AuthenticateOptions
+    options: AuthenticateOptions,
   ): Promise<User> {
     let session = await sessionStorage.getSession(
-      request.headers.get("Cookie")
+      request.headers.get("Cookie"),
     );
     try {
       let user: User | null = session.get(options.sessionKey) ?? null;
@@ -273,7 +276,7 @@ export class WebAuthnStrategy<User> extends Strategy<
 
       if (!expectedChallenge)
         throw new Error(
-          "Expected challenge not found. Please pass it as an option to the authenticate function."
+          "Expected challenge not found. Please pass it as an option to the authenticate function.",
         );
 
       // Based on the authenticator response, either verify registration,
@@ -329,7 +332,7 @@ export class WebAuthnStrategy<User> extends Strategy<
       } else if (type === "authentication") {
         const authenticationData = data as AuthenticationResponseJSON;
         const authenticator = await this.getAuthenticatorById(
-          authenticationData.id
+          authenticationData.id,
         );
         if (!authenticator) throw new Error("Passkey not found.");
 
@@ -341,11 +344,11 @@ export class WebAuthnStrategy<User> extends Strategy<
           authenticator: {
             ...authenticator,
             credentialPublicKey: base64UrlToUint8Array(
-              authenticator.credentialPublicKey
+              authenticator.credentialPublicKey,
             ),
             credentialID: base64UrlToUint8Array(authenticator.credentialID),
             transports: authenticator.transports.split(
-              ","
+              ",",
             ) as AuthenticatorTransportFuture[],
           },
         });
@@ -371,7 +374,7 @@ export class WebAuthnStrategy<User> extends Strategy<
           request,
           sessionStorage,
           options,
-          error
+          error,
         );
       }
 
@@ -381,7 +384,7 @@ export class WebAuthnStrategy<User> extends Strategy<
           request,
           sessionStorage,
           options,
-          new Error(error)
+          new Error(error),
         );
       }
 
@@ -390,7 +393,7 @@ export class WebAuthnStrategy<User> extends Strategy<
         request,
         sessionStorage,
         options,
-        new Error(JSON.stringify(error, null, 2))
+        new Error(JSON.stringify(error, null, 2)),
       );
     }
   }

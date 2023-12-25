@@ -17,11 +17,11 @@ export let nanoid = (t = 21) =>
           (e &= 63) < 36
             ? e.toString(36)
             : e < 62
-            ? (e - 26).toString(36).toUpperCase()
-            : e > 62
-            ? "-"
-            : "_"),
-      ""
+              ? (e - 26).toString(36).toUpperCase()
+              : e > 62
+                ? "-"
+                : "_"),
+      "",
     );
 
 export function handleFormSubmit(
@@ -29,7 +29,7 @@ export function handleFormSubmit(
   config?: {
     /** Generate an unique user ID when registering new users */
     generateUserId?: () => string;
-  }
+  },
 ) {
   return async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     if (
@@ -51,18 +51,18 @@ export function handleFormSubmit(
       submitButtonValue === "registration"
         ? "registration"
         : submitButtonValue === "authentication"
-        ? "authentication"
-        : undefined;
+          ? "authentication"
+          : undefined;
 
     if (!type) {
       throw new Error(
-        'When you submit this form, you need to indicate the intent - whether you are registering a new passkey or authenticating an existing passkey. By default, put `name="intent"` attribute on your submit buttons, and set the `value` attribute to either `"registration"` or `"authentication"`.'
+        'When you submit this form, you need to indicate the intent - whether you are registering a new passkey or authenticating an existing passkey. By default, put `name="intent"` attribute on your submit buttons, and set the `value` attribute to either `"registration"` or `"authentication"`.',
       );
     }
 
     if (type === "registration" && !username) {
       throw new Error(
-        "You must provide a username field in your form, and set the `name` attribute to `username`."
+        "You must provide a username field in your form, and set the `name` attribute to `username`.",
       );
     }
 
@@ -77,7 +77,7 @@ export function handleFormSubmit(
               rpId: options.rp.id,
               userVerification: "preferred",
               timeout: 90 * 1000,
-            })
+            }),
           )
         : JSON.stringify(
             await startRegistration({
@@ -106,11 +106,11 @@ export function handleFormSubmit(
                 requireResidentKey: false,
               },
               extensions: { credProps: true },
-            })
+            }),
           );
 
     let responseEl = target.querySelector(
-      'input[name="response"]'
+      'input[name="response"]',
     ) as HTMLInputElement;
     if (!responseEl) {
       responseEl = Object.assign(document.createElement("input"), {
