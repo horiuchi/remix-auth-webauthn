@@ -141,6 +141,7 @@ export interface WebAuthnOptions<User> {
 export type WebAuthnVerifyParams = {
   authenticator: Omit<Authenticator, "userId">;
   type: "registration" | "authentication";
+  name: string | null;
   username: string | null;
 };
 
@@ -291,10 +292,14 @@ export class WebAuthnStrategy<User> extends Strategy<
         throw new Error("Invalid passkey response JSON.");
       }
       const type = formData.get("type");
-      let username = formData.get("username");
+      let name = formData.get("name");
+      if (typeof name !== "string") name = null;
 
+      let username = formData.get("username");
       if (typeof username !== "string") username = null;
+
       if (type === "registration") {
+        if (!name) throw new Error("name is a required form value.");
         if (!username) throw new Error("Username is a required form value.");
         const verification = await verifyRegistrationResponse({
           response: data as RegistrationResponseJSON,
@@ -324,6 +329,7 @@ export class WebAuthnStrategy<User> extends Strategy<
           user = await this.verify({
             authenticator: newAuthenticator,
             type: "registration",
+            name,
             username,
           });
         } else {
@@ -359,6 +365,7 @@ export class WebAuthnStrategy<User> extends Strategy<
         user = await this.verify({
           authenticator,
           type: "authentication",
+          name,
           username,
         });
       } else {
